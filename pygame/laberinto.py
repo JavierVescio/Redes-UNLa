@@ -2,7 +2,7 @@
 
 import pygame
 import math
-from modulos import *
+from managerGeneral import *
 
 pygame.init()
 
@@ -49,6 +49,11 @@ salidaImg = pygame.transform.scale(salidaImg, (dimensionDeUnaPosicion, dimension
 def blitImg(img,x,y):
     gameDisplay.blit(img,(x,y));
 
+def mostrarTexto(texto,color,x,y,tamanio=15,negrita=False,cursiva=False):
+    myfont = pygame.font.SysFont("monospace", tamanio, negrita, cursiva)
+    label = myfont.render(texto,1,color)
+    gameDisplay.blit(label,(x,y))
+
 def determinarImagenDelElemento(letraDelElemento):
     imagenes = [fueraImg,guardiaImg,llaveImg,oroImg,paredImg,entradaImg,salidaImg]
     letras = "FGLOPES"
@@ -78,9 +83,9 @@ def determinarColorDelElemento(letraDelElemento):
         return colores[posicion]
 
 def main(dimensionDeUnaPosicion):
-    salirDelJuego = False
+    managerGeneral = ManagerGeneral()
 
-    managerMovimientos = ManagerMovimientos();
+    salirDelJuego = False
     
     while not salirDelJuego:
         sentido = -1
@@ -103,7 +108,7 @@ def main(dimensionDeUnaPosicion):
                     #Derecha
                     sentido = 4
 
-                elementos = managerMovimientos.moverse(sentido)
+                elementos = managerGeneral.moverse(sentido)
         
         elementos = "PPPPCECCPGPPCPCPPCPCLOCPS"
         #elementos = "FFFFFFFPPPFFECCFFPPCFFPPC"
@@ -143,18 +148,25 @@ def main(dimensionDeUnaPosicion):
             columna = columna + 1
 
         #Trazo una linea vertical negra
-        gameDisplay.fill(negro,rect=[totalColFilDeMatrizCuadrada*dimensionDeUnaPosicion,0,10,screen_height])
+        ubicacionEnX = totalColFilDeMatrizCuadrada*dimensionDeUnaPosicion
+        gameDisplay.fill(negro,rect=[ubicacionEnX,0,10,screen_height])
+
+        #def mostrarTexto(texto,color,x,y,tamanio=15,negrita=False,cursiva=False):
+
+        posXTextos = ubicacionEnX+25
+        posYTextoOroRecodigo = 10
+        mostrarTexto("ORO RECOGIDO",negro,posXTextos,posYTextoOroRecodigo,20,True)
+        mostrarTexto(str(managerGeneral.oroRecogido),rojo,posXTextos,posYTextoOroRecodigo+25,25, False,True)
+
+        posYTextoOroRecodigo = posYTextoOroRecodigo + 80
+        mostrarTexto("POSESION LLAVE",negro,posXTextos,posYTextoOroRecodigo,20,True)
+        mostrarTexto(managerGeneral.decirSiTieneLaLlave(),rojo,posXTextos,posYTextoOroRecodigo+25,25,False,True)
+        
         pygame.display.update()
 
-    #####Desconectarse del server aca#####
+    #####  Desconectarse del server  #####
     #>>>>                            <<<<#
     ######################################
     pygame.quit()
-
-"""
-managerProyectiles = ManagerProyectiles(width_s,110,lead+30);
-managerProyectiles.atacar = True;
-managerProyectiles.disparar()
-"""
 
 main(dimensionDeUnaPosicion)
