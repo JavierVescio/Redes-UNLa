@@ -15,7 +15,7 @@ def encrypt_val(clear_text,MASTER_KEY):
 def encrypt_md5(text):
     m = MD5.new()
     m.update(text) 
-    return m.digest()
+    return m.hexdigest()
 
 def decrypt_val(cipher_text,MASTER_KEY):
     dec_secret = AES.new(MASTER_KEY[:32])
