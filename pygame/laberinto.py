@@ -161,6 +161,10 @@ def main(dimensionDeUnaPosicion):
         posYTextoOroRecodigo = posYTextoOroRecodigo + 80
         mostrarTexto("POSESION LLAVE",negro,posXTextos,posYTextoOroRecodigo,20,True)
         mostrarTexto(managerGeneral.decirSiTieneLaLlave(),rojo,posXTextos,posYTextoOroRecodigo+25,25,False,True)
+
+        posYTextoMensajeServidor = posYTextoOroRecodigo + 80
+        mostrarTexto("MENSAJE SERVER",negro,posXTextos,posYTextoMensajeServidor,20,True)
+        mostrarTexto(managerGeneral.mostrarMensajeServidor(),rojo,posXTextos,posYTextoMensajeServidor+25,25,False,True)
         
         pygame.display.update()
 
