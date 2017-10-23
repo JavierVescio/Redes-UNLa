@@ -84,6 +84,7 @@ def determinarColorDelElemento(letraDelElemento):
 
 def main(dimensionDeUnaPosicion):
     managerGeneral = ManagerGeneral()
+    managerGeneral.client()
 
     salirDelJuego = False
     
@@ -110,8 +111,8 @@ def main(dimensionDeUnaPosicion):
 
                 elementos = managerGeneral.moverse(sentido)
         
-        elementos = "PPPPCECCPGPPCPCPPCPCLOCPS"
-        #elementos = "FFFFFFFPPPFFECCFFPPCFFPPC"
+        #elementos = "PPPPCECCPGPPCPCPPCPCLOCPS"
+        elementos = "FFFFFFFPPPFFECCFFPPCFFPPC"
         
         #Como es una matriz cuadrada, la raiz cuadrada del total de elementos
         #sera el total de filas y tambien sera el total de columnas.
