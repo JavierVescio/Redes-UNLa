@@ -9,7 +9,6 @@ import time
 import struct
 import thread
 from encrip import *
-from managerGeneral import *
 
 pygame.init()
 
@@ -129,11 +128,94 @@ def main(dimensionDeUnaPosicion):
                 comando = data.split('|')
                 datos = comando[1].split('-')
                 if comando[0] == 'map':
-                    minimap = datos[0]
-                    oro = datos[1]
-                    llave = datos[2]
-                    mensaje = datos[3]
+                    minimapa = datos[0]
+                    oroRecogido = datos[1]
+                    llaveRecogida = datos[2]
+                    mensajeServidor = datos[3]
                     print "llego todo"
+					
+                    continuar = False
+                    while not continuar:
+                        #elementos = "PPPPCECCPGPPCPCPPCPCLOCPS"
+                        #elementos = "FFFFFFFPPPFFECCFFPPCFFPPC"
+                        elementos = miniMapa
+                        
+                        #Como es una matriz cuadrada, la raiz cuadrada del total de elementos
+                        #sera el total de filas y tambien sera el total de columnas.
+                        #Ejemplo: si hay 9 elementos es porque es una matriz de 3 filas x 3 columnas.
+                        totalElementos = len(elementos)
+                        totalColFilDeMatrizCuadrada = math.sqrt(totalElementos)
+                        
+                        #Cuando recibo del server un nuevo string de elementos con posiciones, limpio la pantalla.
+                        gameDisplay.fill(blanco)
+                        
+                        iteracion=0
+                        columna=0
+                        while(columna<totalColFilDeMatrizCuadrada):
+                            fila=0
+                            while(fila<totalColFilDeMatrizCuadrada):
+                                posY = columna * dimensionDeUnaPosicion
+                                posX = fila * dimensionDeUnaPosicion
+
+                                if ((2*iteracion) - 1 == totalElementos):
+                                    #Se dibuja el jugador
+                                    blitImg(personajeImg,posX-dimensionDeUnaPosicion,posY)
+                                
+                                letraDelElemento = elementos[iteracion]
+                                imagenDelElemento = determinarImagenDelElemento(letraDelElemento)                
+                                #Si no tiene imagen asociada, le asigno color
+                                if (imagenDelElemento == -1):
+                                    colorDelElemento = determinarColorDelElemento(letraDelElemento)
+                                    gameDisplay.fill(colorDelElemento,rect=[posX,posY,dimensionDeUnaPosicion,dimensionDeUnaPosicion])
+                                else:
+                                    blitImg(imagenDelElemento,posX,posY)
+
+                                iteracion = iteracion + 1
+                                fila = fila + 1
+                            columna = columna + 1
+
+                        #Trazo una linea vertical negra
+                        ubicacionEnX = totalColFilDeMatrizCuadrada*dimensionDeUnaPosicion
+                        gameDisplay.fill(negro,rect=[ubicacionEnX,0,10,screen_height])
+
+                        posXTextos = ubicacionEnX+25
+                        posYTextoOroRecodigo = 10
+                        mostrarTexto("ORO RECOGIDO",negro,posXTextos,posYTextoOroRecodigo,20,True)
+                        mostrarTexto(str(oroRecogido),rojo,posXTextos,posYTextoOroRecodigo+25,25, False,True)
+
+                        posYTextoOroRecodigo = posYTextoOroRecodigo + 80
+                        mostrarTexto("POSESION LLAVE",negro,posXTextos,posYTextoOroRecodigo,20,True)
+                        mostrarTexto(llaveRecogida,rojo,posXTextos,posYTextoOroRecodigo+25,25,False,True)
+
+                        posYTextoMensajeServidor = posYTextoOroRecodigo + 80
+                        mostrarTexto("MENSAJE SERVER",negro,posXTextos,posYTextoMensajeServidor,20,True)
+                        mostrarTexto(mensajeServidor,rojo,posXTextos,posYTextoMensajeServidor+25,25,False,True)
+                        
+                        pygame.display.update()
+
+                        sentido = -1
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT: #Si cierra la ventana el juego termina
+                                pygame.quit()
+                            if (event.type == pygame.KEYDOWN):
+                                if (event.key == pygame.K_q): #Si presiona Q el juego termina
+                                    pygame.quit()
+                                elif (event.key == pygame.K_UP):
+                                    #Arriba
+                                    sentido = 1
+                                elif (event.key == pygame.K_DOWN):
+                                    #Abajo
+                                    sentido = 2
+                                elif (event.key == pygame.K_LEFT):
+                                    #Izquierda
+                                    sentido = 3
+                                elif (event.key == pygame.K_RIGHT):
+                                    #Derecha
+                                    sentido = 4
+
+                                #Aca deberia avisarle al server el movimiento del jugador
+                                #de forma que el server le pase el minimapa que se carga
+                                #en elementos
                 else:
                     print "El servidor envio un comando invalido"
             except:
@@ -142,97 +224,5 @@ def main(dimensionDeUnaPosicion):
     else:
         print "Error en el inicio de sesion."
         exit()
-
-    #########################
-        
-    
-    salirDelJuego = False
-    while not salirDelJuego:
-        sentido = -1
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT: #Si cierra la ventana el juego termina
-                salirDelJuego = True
-            if (event.type == pygame.KEYDOWN):
-                if (event.key == pygame.K_q): #Si presiona Q el juego termina
-                    salirDelJuego = True
-                elif (event.key == pygame.K_UP):
-                    #Arriba
-                    sentido = 1
-                elif (event.key == pygame.K_DOWN):
-                    #Abajo
-                    sentido = 2
-                elif (event.key == pygame.K_LEFT):
-                    #Izquierda
-                    sentido = 3
-                elif (event.key == pygame.K_RIGHT):
-                    #Derecha
-                    sentido = 4
-
-                #Aca deberia avisarle al server el movimiento del jugador
-                #de forma que el server le pase el minimapa que se carga
-                #en elementos
-        
-        elementos = "PPPPCECCPGPPCPCPPCPCLOCPS"
-        #elementos = "FFFFFFFPPPFFECCFFPPCFFPPC"
-        
-        #Como es una matriz cuadrada, la raiz cuadrada del total de elementos
-        #sera el total de filas y tambien sera el total de columnas.
-        #Ejemplo: si hay 9 elementos es porque es una matriz de 3 filas x 3 columnas.
-        totalElementos = len(elementos)
-        totalColFilDeMatrizCuadrada = math.sqrt(totalElementos)
-        
-        #Cuando recibo del server un nuevo string de elementos con posiciones, limpio la pantalla.
-        gameDisplay.fill(blanco)
-        
-        iteracion=0
-        columna=0
-        while(columna<totalColFilDeMatrizCuadrada):
-            fila=0
-            while(fila<totalColFilDeMatrizCuadrada):
-                posY = columna * dimensionDeUnaPosicion
-                posX = fila * dimensionDeUnaPosicion
-
-                if ((2*iteracion) - 1 == totalElementos):
-                    #Se dibuja el jugador
-                    blitImg(personajeImg,posX-dimensionDeUnaPosicion,posY)
-                
-                letraDelElemento = elementos[iteracion]
-                imagenDelElemento = determinarImagenDelElemento(letraDelElemento)                
-                #Si no tiene imagen asociada, le asigno color
-                if (imagenDelElemento == -1):
-                    colorDelElemento = determinarColorDelElemento(letraDelElemento)
-                    gameDisplay.fill(colorDelElemento,rect=[posX,posY,dimensionDeUnaPosicion,dimensionDeUnaPosicion])
-                else:
-                    blitImg(imagenDelElemento,posX,posY)
-
-                iteracion = iteracion + 1
-                fila = fila + 1
-            columna = columna + 1
-
-        #Trazo una linea vertical negra
-        ubicacionEnX = totalColFilDeMatrizCuadrada*dimensionDeUnaPosicion
-        gameDisplay.fill(negro,rect=[ubicacionEnX,0,10,screen_height])
-
-        #def mostrarTexto(texto,color,x,y,tamanio=15,negrita=False,cursiva=False):
-
-        posXTextos = ubicacionEnX+25
-        posYTextoOroRecodigo = 10
-        mostrarTexto("ORO RECOGIDO",negro,posXTextos,posYTextoOroRecodigo,20,True)
-        mostrarTexto(str(managerGeneral.oroRecogido),rojo,posXTextos,posYTextoOroRecodigo+25,25, False,True)
-
-        posYTextoOroRecodigo = posYTextoOroRecodigo + 80
-        mostrarTexto("POSESION LLAVE",negro,posXTextos,posYTextoOroRecodigo,20,True)
-        mostrarTexto(managerGeneral.decirSiTieneLaLlave(),rojo,posXTextos,posYTextoOroRecodigo+25,25,False,True)
-
-        posYTextoMensajeServidor = posYTextoOroRecodigo + 80
-        mostrarTexto("MENSAJE SERVER",negro,posXTextos,posYTextoMensajeServidor,20,True)
-        mostrarTexto(managerGeneral.mostrarMensajeServidor(),rojo,posXTextos,posYTextoMensajeServidor+25,25,False,True)
-        
-        pygame.display.update()
-
-    #####  Desconectarse del server  #####
-    #>>>>                            <<<<#
-    ######################################
-    pygame.quit()
 
 main(dimensionDeUnaPosicion)
