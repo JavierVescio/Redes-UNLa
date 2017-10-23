@@ -40,7 +40,7 @@ MAPAS=[
       ['C','C','C','G','P','C','C','P','P','C','P','P','C','P','P','P','P','P','C','P'],
       ['P','P','P','P','P','C','P','P','G','G','P','P','C','C','P','P','G','C','C','P'],
       ['P','C','O','C','C','C','P','P','C','P','P','P','P','C','P','P','G','P','P','P'],
-      ['P','C','P','P','P','G','P','P','C','C','C','P','P','O','P','P','C','P','P','P'],
+      ['P','C','P','P','P','G','P','C','C','C','C','P','C','O','P','C','C','P','P','P'],
       ['P','C','C','C','C','C','P','L','P','O','P','P','O','P','P','S','P','P','P','P'],
       ]
 
@@ -84,7 +84,10 @@ def conexion(client):
 #aca empieza el juego
       gameover = False
       #time.sleep(1)
+
       while gameover==False:
+        
+        print "empieza juego"
         oro = 0
         llave = 0
         msg = 'Juege'
@@ -93,11 +96,13 @@ def conexion(client):
         mapaactual = MAPAS
         movimientovalido = True
         movimiento = True
+        minimap=''
         while movimiento:
           #try:
-          minimap=''
+          
           fila = 0 
-          if movimientovalido:         
+          if movimientovalido:
+            minimap=''
             x=pos[0]-2
             while (fila < 5):
               columna=0
@@ -112,43 +117,45 @@ def conexion(client):
               fila = fila + 1
               x=x+1
             
-            print minimap
+            
             if minimap[12]== 'O':
               oro=oro+1
               mapaactual[pos[0]][pos[1]]='C'
             if minimap[12]== 'L':
               llave = 1
               mapaactual[pos[0]][pos[1]]='C'
+
             if minimap[12]== 'G':
               if oro > 0:
                 oro=oro-1
                 mapaactual[pos[0]][pos[1]]='C'
               else:
                 #si no tiene oro termina el juego y vuelve a empezar
-                gameover=True
+                gameover=False
                 movimiento = False
                 msg = 'No tienes ORO!! GAMEOVER'
                 #despues analizar si el oro es negativo fin de juego
             if minimap[12]== 'S':
               if llave == 1 :
-                win = True
+                gameover=False
+                movimiento = False
+                msg = 'GANASTE!!!! GAMEOVER'              
               else :           
                 msg = 'Falta la llave'
-            minimap=minimap[0:11] + 'J' + minimap[13:]
+
+            minimap=minimap[0:12] + 'J' + minimap[13:]
             
           else:
                 #MOVIMIENTO INVALIDO volvemos a mandar el minimap anterior
             msg = 'Movimiento INVALIDO!!'
-
-          mensaje = 'map|'+minimap+'-'+str(oro)+str(llave)+msg
-
+          movimientovalido = True
+          mensaje = 'map|'+minimap+'-'+str(oro)+'-'+str(llave)+'-'+msg
           mensaje = encrypt_val(mensaje, CLAVEMAESTRA)
-          print len(mensaje)
-          print mensaje
           client.socket.send(mensaje)
-          time.sleep(1)
+          #time.sleep(1)
           data = client.socket.recv(RECV_BUFFER)
           data = decrypt_val(data,CLAVEMAESTRA)
+          print data
           comando = data.split('|')
           if comando[0] == 'exit':
             cliente.socket.close()
@@ -159,35 +166,37 @@ def conexion(client):
                   
           if comando[0] == 'mov':
             if comando[1]=='up':  
-              if pos[1]-1<=0:
-                if mapaactual[pos[0]][pos[1]-1]=='P':
-                  movimientovalido = False
-                else:
-                  pos[1]=pos[1]-1
-              else:
-                movimientovalido = False
-            elif comando[1]=='do':  
-              if pos[1]+1>20:
-                if mapaactual[pos[0]][pos[1]+1]=='P':
-                  movimientovalido = False
-                else:
-                  pos[1]=pos[1]+1
-              else:
-                movimientovalido = False
-            elif comando[1]=='le':  
-              if pos[0]-1<=0:
+              if pos[0]-1>=0:
                 if mapaactual[pos[0]-1][pos[1]]=='P':
                   movimientovalido = False
                 else:
                   pos[0]=pos[0]-1
               else:
                 movimientovalido = False
-            elif comando[1]=='ri':  
-              if pos[0]+1>20:
+            elif comando[1]=='do':  
+              if pos[0]+1<20:
                 if mapaactual[pos[0]+1][pos[1]]=='P':
                   movimientovalido = False
                 else:
                   pos[0]=pos[0]+1
+              else:
+                movimientovalido = False
+            elif comando[1]=='le':  
+              if pos[1]-1>=0:
+                if mapaactual[pos[0]][pos[1]-1]=='P':
+                  movimientovalido = False
+                else:
+                  pos[1]=pos[1]-1
+              else:
+                movimientovalido = False
+            elif comando[1]=='ri':  
+              if pos[1]+1<20:
+                print mapaactual[pos[0]][pos[1]+1]
+                print mapaactual[pos[0]][pos[1]]
+                if mapaactual[pos[0]][pos[1]+1]=='P':
+                  movimientovalido = False
+                else:
+                  pos[1]=pos[1]+1
               else:
                 movimientovalido = False
                 """
@@ -230,17 +239,18 @@ def server():
         # Esto ocurre antes de que se conecte un nuevo cliente
         c = Client()
         c.code = str(uuid.uuid4().fields[-1])[:5]
-
+        print "1"
         # El server se queda en el bucle server_socket.accept()
         # hasta que se conecte un cliente y entonces se devuelven
         # el socket y la direccion desde donde se ha conectado
         c.socket, c.addr = server_socket.accept()
 
-        # Lo aÃÂ±adimos a una lista
+        # Lo a�adimos a una lista
         SOCKET_LIST.append(c)
-
-        # Y lo lanzamos en un hilo para gestionar su conexiÃÂ³n
+        print "2"
+        # Y lo lanzamos en un hilo para gestionar su conexion
         thread.start_new_thread(conexion, (c,))
+        print "3"
 
     server_socket.close()
 
