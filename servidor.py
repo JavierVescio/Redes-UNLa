@@ -82,118 +82,128 @@ def conexion(client):
         finally:
           SOCKET_LIST.remove(client)
 #aca empieza el juego
+      gameover = False
+      #time.sleep(1)
       while gameover==False:
         oro = 0
         llave = 0
         msg = 'Juege'
-        pos = [0,1]
+        pos = [1,0]
         mapaactual = []
         mapaactual = MAPAS
         movimientovalido = True
+        movimiento = True
         while movimiento:
-          try:
-            minimap=''
-            fila = 0 
-            if movimientovalido:
+          #try:
+          minimap=''
+          fila = 0 
+          if movimientovalido:         
+            x=pos[0]-2
+            while (fila < 5):
+              columna=0
               y=pos[1]-2
-              while (fila < 5):
-                columna=0
-                x=pos[0]-2
-                while (columna < 5):
-                  if x>=0 and y>=0 and x>20 and y>20:
-                    minimap=minimap+mapaactual[x][y]
-                  else:
-                    minimap=minimap+'F'
-                    x=x+1   
-                    columna = columna + 1
-                    fila = fila + 1
-                    y=y+1
-                    if minimap[12]== 'O':
-                      oro=oro+1
-                      mapaactual[pos[0]][pos[1]]='C'
-                    if minimap[12]== 'L':
-                      llave = 1
-                      mapaactual[pos[0]][pos[1]]='C'
-                    if minimap[12]== 'G':
-                      if oro > 0:
-                        oro=oro-1
-                        mapaactual[pos[0]][pos[1]]='C'
-                      else:
-                        #si no tiene oro termina el juego y vuelve a empezar
-                        gameover=True
-                        movimiento = False
-                        msg = 'No tienes ORO!! GAMEOVER'
-                        #despues analizar si el oro es negativo fin de juego
-                      if minimap[12]== 'S':
-                        if llave == 1 :
-                          win = True
-                      else :           
-                        msg = 'Falta la llave'
-                        minimap[12]='J'
-            else:
-                  #MOVIMIENTO INVALIDO volvemos a mandar el minimap anterior
-              msg = 'Movimiento INVALIDO!!'
-              mensaje = 'map|'+minimap+'-'+oro+llave+msg
+              while (columna < 5):
+                if x>=0 and y>=0 and x<20 and y<20:
+                  minimap=minimap+mapaactual[x][y]
+                else:
+                  minimap=minimap+'F'
+                y=y+1  
+                columna = columna + 1
+              fila = fila + 1
+              x=x+1
+            
+            print minimap
+            if minimap[12]== 'O':
+              oro=oro+1
+              mapaactual[pos[0]][pos[1]]='C'
+            if minimap[12]== 'L':
+              llave = 1
+              mapaactual[pos[0]][pos[1]]='C'
+            if minimap[12]== 'G':
+              if oro > 0:
+                oro=oro-1
+                mapaactual[pos[0]][pos[1]]='C'
+              else:
+                #si no tiene oro termina el juego y vuelve a empezar
+                gameover=True
+                movimiento = False
+                msg = 'No tienes ORO!! GAMEOVER'
+                #despues analizar si el oro es negativo fin de juego
+            if minimap[12]== 'S':
+              if llave == 1 :
+                win = True
+              else :           
+                msg = 'Falta la llave'
+            minimap=minimap[0:11] + 'J' + minimap[13:]
+            
+          else:
+                #MOVIMIENTO INVALIDO volvemos a mandar el minimap anterior
+            msg = 'Movimiento INVALIDO!!'
 
-            mensaje = encrypt_val(mensaje, CLAVEMAESTRA)
-            client.socket.send(mensaje)
-            data = client.socket.recv(RECV_BUFFER)
-            data = decrypt_val(data,CLAVEMAESTRA)
-            comando = data.split('|')
-            if comando[0] == 'exit':
-              cliente.socket.close()
-              SOCKET_LIST.remove(c)
-              print "Cliente " + c.code + " solicita desconeccion - Cerrando..."
-              movimiento=False
-              gameover = True
-                    
-            if comando[0] == 'mov':
-              if comando[1]=='up':  
-                if pos[1]-1<=0:
-                  if mapaactual[pos[0]][pos[1]-1]=='P':
-                    movimientovalido = False
-                  else:
-                    pos[1]=pos[1]-1
-                else:
+          mensaje = 'map|'+minimap+'-'+str(oro)+str(llave)+msg
+
+          mensaje = encrypt_val(mensaje, CLAVEMAESTRA)
+          print len(mensaje)
+          print mensaje
+          client.socket.send(mensaje)
+          time.sleep(1)
+          data = client.socket.recv(RECV_BUFFER)
+          data = decrypt_val(data,CLAVEMAESTRA)
+          comando = data.split('|')
+          if comando[0] == 'exit':
+            cliente.socket.close()
+            SOCKET_LIST.remove(c)
+            print "Cliente " + c.code + " solicita desconeccion - Cerrando..."
+            movimiento=False
+            gameover = True
+                  
+          if comando[0] == 'mov':
+            if comando[1]=='up':  
+              if pos[1]-1<=0:
+                if mapaactual[pos[0]][pos[1]-1]=='P':
                   movimientovalido = False
-              elif comando[1]=='do':  
-                if pos[1]+1>20:
-                  if mapaactual[pos[0]][pos[1]+1]=='P':
-                    movimientovalido = False
-                  else:
-                    pos[1]=pos[1]+1
                 else:
+                  pos[1]=pos[1]-1
+              else:
+                movimientovalido = False
+            elif comando[1]=='do':  
+              if pos[1]+1>20:
+                if mapaactual[pos[0]][pos[1]+1]=='P':
                   movimientovalido = False
-              elif comando[1]=='le':  
-                if pos[0]-1<=0:
-                  if mapaactual[pos[0]-1][pos[1]]=='P':
-                    movimientovalido = False
-                  else:
-                    pos[0]=pos[0]-1
                 else:
+                  pos[1]=pos[1]+1
+              else:
+                movimientovalido = False
+            elif comando[1]=='le':  
+              if pos[0]-1<=0:
+                if mapaactual[pos[0]-1][pos[1]]=='P':
                   movimientovalido = False
-              elif comando[1]=='ri':  
-                if pos[0]+1>20:
-                  if mapaactual[pos[0]+1][pos[1]]=='P':
-                    movimientovalido = False
-                  else:
-                    pos[0]=pos[0]+1
                 else:
+                  pos[0]=pos[0]-1
+              else:
+                movimientovalido = False
+            elif comando[1]=='ri':  
+              if pos[0]+1>20:
+                if mapaactual[pos[0]+1][pos[1]]=='P':
                   movimientovalido = False
-                  """
-                  for c in SOCKET_LIST:
-                      # Enviar mensaje al cliente
-                      if not c.socket.send("chau"):
-                          try:
-                              c.socket.close()
-                          finally:
-                              SOCKET_LIST.remove(c)
-                              print "Cliente " + c.code + " no econtrado - Cerrando..."
-                              cliente_conectado=False
-                  print "Total clients: " + str(len(SOCKET_LIST))
-                  """
+                else:
+                  pos[0]=pos[0]+1
+              else:
+                movimientovalido = False
+                """
+                for c in SOCKET_LIST:
+                    # Enviar mensaje al cliente
+                    if not c.socket.send("chau"):
+                        try:
+                            c.socket.close()
+                        finally:
+                            SOCKET_LIST.remove(c)
+                            print "Cliente " + c.code + " no econtrado - Cerrando..."
+                            cliente_conectado=False
+                print "Total clients: " + str(len(SOCKET_LIST))
+                """
                  
-          except Exception as e:
+        """  except Exception as e:
             print "Excepcion en socket de cliente:"
             print e
             try:
@@ -202,7 +212,7 @@ def conexion(client):
               SOCKET_LIST.remove(client)
               print "Cliente " + client.code + " no encontrado - Socket cerrado - Total clients: " + str(len(SOCKET_LIST))
               movimiento = False
-              gameover = True
+              gameover = True"""
               
   return
 def server():

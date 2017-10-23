@@ -109,8 +109,8 @@ def main(dimensionDeUnaPosicion):
         exit()
     
     #Enviar Mensaje al Srvidor
-    user = input("Ingrese Usuario: ")
-    passw = input("Ingrese Password: ")
+    user = raw_input("Ingrese Usuario: ")
+    passw = raw_input("Ingrese Password: ")
     texto= "log|" + user + "|" + passw
     data = encrypt_val(texto,CLAVEMAESTRA)
     client_socket.send(data)
@@ -138,7 +138,7 @@ def main(dimensionDeUnaPosicion):
                     print "El servidor envio un comando invalido"
             except:
                 print "El servidor se desconecto."
-            exit()
+                exit()
     else:
         print "Error en el inicio de sesion."
         exit()
