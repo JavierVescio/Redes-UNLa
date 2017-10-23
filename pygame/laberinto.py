@@ -2,6 +2,13 @@
 
 import pygame
 import math
+import sys
+import socket
+import random
+import time
+import struct
+import thread
+from encrip import *
 from managerGeneral import *
 
 pygame.init()
@@ -46,6 +53,14 @@ entradaImg = pygame.transform.scale(entradaImg, (dimensionDeUnaPosicion, dimensi
 salidaImg = pygame.transform.scale(salidaImg, (dimensionDeUnaPosicion, dimensionDeUnaPosicion))
 ########################
 
+#####DATOS SERVER#####
+HOST = 'localhost'
+PORT = 9000
+RECV_BUFFER = 1024
+CLAVEMAESTRA = '0123456789111222'
+
+
+
 def blitImg(img,x,y):
     gameDisplay.blit(img,(x,y));
 
@@ -83,11 +98,55 @@ def determinarColorDelElemento(letraDelElemento):
         return colores[posicion]
 
 def main(dimensionDeUnaPosicion):
-    managerGeneral = ManagerGeneral()
-    managerGeneral.client()
-
-    salirDelJuego = False
+    ###########CONEXION##############
     
+    addr = (HOST, PORT)
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        client_socket.connect(addr)
+    except:
+        print "No se pudo conectar con el servidor."
+        exit()
+    
+    #Enviar Mensaje al Srvidor
+    user = input("Ingrese Usuario: ")
+    passw = input("Ingrese Password: ")
+    texto= "log|" + user + "|" + passw
+    data = encrypt_val(texto,CLAVEMAESTRA)
+    client_socket.send(data)
+    data = client_socket.recv(RECV_BUFFER)
+    data = decrypt_val(data,CLAVEMAESTRA)
+    comando = data.split('|')
+    
+    if (comando[0]=='log' and comando[1] == 'ok'):
+        conected=True
+        while conected:
+            #Leer respuesta del servidor
+            print "hola hola hola"
+            try:
+                data = client_socket.recv(RECV_BUFFER)
+                data = decrypt_val(data,CLAVEMAESTRA)
+                comando = data.split('|')
+                datos = comando[1].split('-')
+                if comando[0] == 'map':
+                    minimap = datos[0]
+                    oro = datos[1]
+                    llave = datos[2]
+                    mensaje = datos[3]
+                    print "llego todo"
+                else:
+                    print "El servidor envio un comando invalido"
+            except:
+                print "El servidor se desconecto."
+            exit()
+    else:
+        print "Error en el inicio de sesion."
+        exit()
+
+    #########################
+        
+    
+    salirDelJuego = False
     while not salirDelJuego:
         sentido = -1
         for event in pygame.event.get():
@@ -109,10 +168,12 @@ def main(dimensionDeUnaPosicion):
                     #Derecha
                     sentido = 4
 
-                elementos = managerGeneral.moverse(sentido)
+                #Aca deberia avisarle al server el movimiento del jugador
+                #de forma que el server le pase el minimapa que se carga
+                #en elementos
         
-        #elementos = "PPPPCECCPGPPCPCPPCPCLOCPS"
-        elementos = "FFFFFFFPPPFFECCFFPPCFFPPC"
+        elementos = "PPPPCECCPGPPCPCPPCPCLOCPS"
+        #elementos = "FFFFFFFPPPFFECCFFPPCFFPPC"
         
         #Como es una matriz cuadrada, la raiz cuadrada del total de elementos
         #sera el total de filas y tambien sera el total de columnas.
